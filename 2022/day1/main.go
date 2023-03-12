@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 )
 
@@ -68,15 +69,28 @@ func calorieCount(calories []int) int {
 func largestNumber(calorieSummaryList []int) (largestCalorieCount int, position int) {
 
 	inventoryLen := len(calorieSummaryList)
+	largestCalorie := calorieSummaryList[0]
 
 	for j := 1; j < inventoryLen; j++ {
-		if calorieSummaryList[0] < calorieSummaryList[j] {
-			calorieSummaryList[0] = calorieSummaryList[j]
+		if largestCalorie < calorieSummaryList[j] {
+			largestCalorie = calorieSummaryList[j]
 			position = j
 		}
 	}
 
-	return calorieSummaryList[0], position
+	return largestCalorie, position
+}
+
+func topSnackHolders(calorieSummaryList []int) int {
+
+	sort.Slice(calorieSummaryList, func(i, j int) bool {
+		return calorieSummaryList[i] > calorieSummaryList[j]
+	})
+
+	//fmt.Println(calorieSummaryList[0], calorieSummaryList[1], calorieSummaryList[2])
+	topThreeCalorieCount := calorieSummaryList[0] + calorieSummaryList[1] + calorieSummaryList[2]
+	return topThreeCalorieCount
+
 }
 
 func computeCalorieTotalList(inventory [][]int) []int {
@@ -126,5 +140,7 @@ func main() {
 
 	fmt.Println("")
 	fmt.Printf("The lasrgest calorie count is: %d \nIt is held by elf at position: %d \n", largetClorieCount, elfPosition)
+	fmt.Println("")
+	fmt.Printf("The sum of calories held up by top three elfs is: %d \n", topSnackHolders(calorieSummary))
 
 }
