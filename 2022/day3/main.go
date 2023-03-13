@@ -139,19 +139,74 @@ func calculatePriorities(itemPositions []itemPosition) int {
 
 }
 
+func calculateGroupPriorities(rucksackInventory []string) int {
+
+	var groupStickers []itemPosition
+
+	// Loop through each group
+	for i := 0; i <= len(rucksackInventory); i = i + 3 {
+
+		if i >= len(rucksackInventory) {
+			break
+		}
+
+		// Loop through each charachter in the first bag of the group
+		for _, rucksackContent := range rucksackInventory[i] {
+
+			rucksackContentString := string(rucksackContent)
+			var foundSticker bool
+			var groupSticker itemPosition
+
+			//Seach for common badge/charachter across rucksacks in a group
+			for pos, charachter := range rucksackContentString {
+
+				k := strings.Index(rucksackInventory[i+1], string(charachter))
+				l := strings.Index(rucksackInventory[i+2], string(charachter))
+
+				if k >= 0 && l >= 0 {
+					foundSticker = true
+					groupSticker.item = string(charachter)
+					groupSticker.firstIndex = pos
+					groupStickers = append(groupStickers, groupSticker)
+
+					break
+				}
+			}
+
+			if foundSticker {
+				foundSticker = false
+				break
+			}
+
+		}
+
+	}
+
+	//fmt.Println(groupStickers)
+
+	// Calculate overall group priorities
+	grpPriority := calculatePriorities(groupStickers)
+
+	return grpPriority
+
+}
+
 func main() {
 
 	// Process data
 	rucksackInventory := processInputData()
 
-	//fmt.Println(rucksackInventory)
-
-	// Find duplicate items
+	// Find duplicate items across compartments in a rucksack
 	itemPositions := findDuplicateItems(rucksackInventory)
-	//fmt.Println(itemPositions)
 
-	// Calcuate priorities
+	// Calcuate priorities of dupliate items across all backpacks
 	priority := calculatePriorities(itemPositions)
 
-	fmt.Println("The sum of the priorities of duplicate items across compartments is: ", priority)
+	fmt.Println("The sum of the priorities of duplicate items across rucksacks is: ", priority)
+
+	// Calcuate priorities of badges across all elf groups
+	groupPriority := calculateGroupPriorities(rucksackInventory)
+
+	fmt.Println(groupPriority)
+
 }
