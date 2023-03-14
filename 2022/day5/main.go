@@ -142,6 +142,32 @@ func makeMove(actions [][]int, stackData map[int][]string) {
 
 }
 
+/*
+Function to make moves as per part 2 requirement
+*/
+func makeMove9001(actions [][]int, stackData map[int][]string) {
+	for _, action := range actions {
+
+		//fmt.Println("Action >", action)
+
+		toSlice := stackData[action[2]]
+		fromSlice := stackData[action[1]]
+
+		cratesToMove := fromSlice[len(fromSlice)-action[0]:]
+
+		toSlice = append(toSlice, cratesToMove...)
+		fromSlice = stackData[action[1]][:len(fromSlice)-action[0]] //Remove crates after move
+
+		stackData[action[1]] = fromSlice
+		stackData[action[2]] = toSlice
+
+	}
+
+	for k := 1; k <= len(stackData); k++ {
+		fmt.Println(k, stackData[k])
+	}
+}
+
 func processRawData(rawData []string) {
 
 }
@@ -149,6 +175,7 @@ func processRawData(rawData []string) {
 func main() {
 
 	//TestData
+
 	/*
 		rawData := ReadDataFromFile("./input/data.txt")
 		stackData := buildStack(rawData[:3])
@@ -159,6 +186,7 @@ func main() {
 	stackData := buildStack(rawData[:8])
 	allMoves := prepareMoveSteps(rawData[10:])
 
-	makeMove(allMoves, stackData)
+	//makeMove(allMoves, stackData)
+	makeMove9001(allMoves, stackData)
 
 }

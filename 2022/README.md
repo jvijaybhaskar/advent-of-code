@@ -11,4 +11,6 @@ cd day1
 go run main.go
 ```
 
-#Happy Coding!
+---
+
+# Happy Coding!
