@@ -60,7 +60,7 @@ func processRawData(rawFileData []string) {
 		treeGrid = append(treeGrid, row)
 
 	}
-	printTreeGrid()
+	//printTreeGrid()
 
 }
 
@@ -71,9 +71,11 @@ func printTreeGrid() {
 	for _, row := range treeGrid {
 		for _, tree := range row {
 			fmt.Printf("%v", tree.height)
+			//fmt.Printf("-%vH:%v-", tree.height, tree.scenicScore)
 		}
 		fmt.Println("")
 	}
+	fmt.Println("____________________________")
 
 }
 
@@ -161,13 +163,66 @@ func determineTreeVisiblility(x int, y int, tree *treeProp) int {
 	}
 
 	tree.visible = isVisibleLeft || isVisibleRight || isVisibleTop || isVisibleBottom
-	//tree.visible = false
 
 	if tree.visible {
 		visibleTrees++
 	}
 
 	return visibleTrees
+
+}
+
+//Too many for loop. Makes it hard to maintain
+//See if you can reverse the slice and call a function that can loop through it
+func determineScenicScore(x int, y int, tree *treeProp) int {
+
+	treeRow := treeGrid[x]
+	concernedTreeHeight := tree.height
+
+	scenicScoreRight := 0
+	for i := y + 1; i < len(treeRow); i++ {
+		if treeRow[i].height < concernedTreeHeight {
+			scenicScoreRight++
+		} else {
+			scenicScoreRight++
+			break
+		}
+	}
+
+	scenicScoreLeft := 0
+	for i := y - 1; i >= 0; i-- {
+		if treeRow[i].height < concernedTreeHeight {
+			scenicScoreLeft++
+		} else {
+			scenicScoreLeft++
+			break
+		}
+	}
+
+	scenicScoreBottom := 0
+	for i := x + 1; i < len(treeGrid); i++ {
+		if treeGrid[i][y].height < concernedTreeHeight {
+			scenicScoreBottom++
+		} else {
+			scenicScoreBottom++
+			break
+		}
+	}
+
+	scenicScoreTop := 0
+	for i := x - 1; i >= 0; i-- {
+		if treeGrid[i][y].height < concernedTreeHeight {
+			scenicScoreTop++
+		} else {
+			scenicScoreTop++
+			break
+		}
+	}
+
+	scenicScore := scenicScoreLeft * scenicScoreRight * scenicScoreTop * scenicScoreBottom
+	tree.scenicScore = scenicScore
+
+	return scenicScore
 
 }
 
@@ -187,9 +242,37 @@ func assessVisibility() {
 		}
 	}
 
-	printTreeGrid()
+	//printTreeGrid()
 
 	fmt.Println("Visible Trees: ", visibleTrees)
+}
+
+func assessScenicScore() {
+	var highestScenicScope, currentScenicScore int
+
+	for x, treeRow := range treeGrid {
+
+		if x == 0 || x == len(treeRow)-1 {
+			//skip first and last row
+			continue
+		}
+		for y, tree := range treeRow {
+			if y == 0 || y == len(treeRow)-1 {
+				//skip first and last column
+				continue
+			}
+
+			currentScenicScore = determineScenicScore(x, y, tree)
+
+			if currentScenicScore > highestScenicScope {
+				highestScenicScope = currentScenicScore
+			}
+
+		}
+	}
+
+	fmt.Println("Highest scenic score is: ", highestScenicScope)
+
 }
 
 /*
@@ -198,12 +281,13 @@ Data structure design
 1. Properties of the tree (height and visibility) is tracked using a struct
 2. The location of tree in a grid is tracked using a two dimentional slice of trees
 3. Individual tree visibility is tracked in a struct. Total visible trees are determined by looping through the grid
-
+4. [For Part 2] Add a new field called scenicScore
 */
 
 type treeProp struct {
-	height  int
-	visible bool
+	height      int
+	visible     bool
+	scenicScore int
 }
 
 var treeGrid [][]*treeProp
@@ -211,8 +295,10 @@ var visbibleTrees map[string]int
 
 func main() {
 
-	rawFileContent := readDataFromFile("./input/data.txt")
+	rawFileContent := readDataFromFile("./input/data_large.txt")
 	processRawData(rawFileContent)
+
 	assessVisibility()
+	assessScenicScore()
 
 }
