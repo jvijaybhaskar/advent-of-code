@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -77,6 +78,15 @@ type Directory struct {
 	subDirSize    int
 }
 
+// Impleting sort.Interface for Part 2 requirement
+// Below implementation sorts by size
+
+type BySize []Directory
+
+func (a BySize) Len() int           { return len(a) }
+func (a BySize) Less(i, j int) bool { return a[i].dirSize < a[j].dirSize }
+func (a BySize) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+
 /*
 initialize data structures
 */
@@ -86,6 +96,7 @@ var directoryMap = map[string]*Directory{}
 var currentDirectoryName string
 var currentDirPath string
 
+// Function to build directory structure based on "cd" commands in the input files
 func changeDirectory(dirName string) {
 
 	if dirName == "$ cd .." {
@@ -95,9 +106,6 @@ func changeDirectory(dirName string) {
 		parentHeight := len(splitParentPath) - 1
 		currentDirectoryName = splitParentPath[parentHeight]
 		currentDirPath = strings.Join(splitParentPath[:parentHeight], "/")
-
-		//fmt.Println("Processing >> ", dirName)
-		//fmt.Println(currentDirectoryName, currentDirPath)
 
 	} else {
 
@@ -119,12 +127,15 @@ func changeDirectory(dirName string) {
 
 		directoryMap[currentDirPath] = &directory
 
-		//fmt.Println("Processing >> ", dirName)
-		//fmt.Println(currentDirectoryName, currentDirPath)
-
 	}
 
 }
+
+/*
+Function to process outcome(folder contents) of 'ls' command
+Apart from computing size of files in a folder, it also updates the size in parent chain
+It also builds a list of subdirectories of the given folder
+*/
 
 func processDirContent(dirContent string) {
 
@@ -164,7 +175,27 @@ func processDirContent(dirContent string) {
 
 	}
 
-	//fmt.Println("After update", *directoryMap[currentDirPath])
+}
+
+/*
+Function to address part 2 requirement.
+It sorts all the directories by size and identifies the dir that could be deleted to free up space.
+*/
+func identifyFolderToDelete(spaceToBeFreed int) []Directory {
+
+	var directoryListing []Directory
+
+	for _, directory := range directoryMap {
+
+		if directory.dirSize >= spaceToBeFreed {
+			directoryListing = append(directoryListing, *directory)
+		}
+
+	}
+
+	sort.Sort(BySize(directoryListing))
+
+	return directoryListing
 
 }
 
@@ -216,12 +247,34 @@ func main() {
 	var seperator = "________________________________________________________"
 	for path, directory := range directoryMap {
 
-		fmt.Println(path, seperator[:len(seperator)-len(path)], directory.subDir, directory.dirSize)
+		fmt.Println(path, seperator[:len(seperator)-len(path)], directory.dirSize, directory.subDir)
 		if directory.dirSize <= 100000 {
 			candidateFileSize += directory.dirSize
 		}
 
 	}
-	fmt.Println(candidateFileSize)
+
+	fmt.Println(seperator)
+	fmt.Println("")
+	fmt.Println("Total size of directories with atmost size of 100000 is: ", candidateFileSize)
+
+	fmt.Println(seperator)
+	fmt.Println("")
+
+	root := directoryMap["root"]
+	var availableSpace = 70000000 - root.dirSize
+	var spaceToBeFreed = 30000000 - availableSpace
+
+	fmt.Println("Space to be freed: ", spaceToBeFreed)
+
+	fmt.Println("")
+
+	candidateDirToDelete := identifyFolderToDelete(spaceToBeFreed)
+
+	for _, directory := range candidateDirToDelete {
+		fmt.Println(directory.dirName, directory.dirSize)
+	}
+
+	fmt.Println("")
 
 }
