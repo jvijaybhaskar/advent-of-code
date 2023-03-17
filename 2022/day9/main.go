@@ -97,7 +97,7 @@ func offsetLaterally(head *KnotPosition, tail *KnotPosition) {
 		}
 	}
 
-	fmt.Println("T> ", tail.x, tail.y)
+	fmt.Println("T>", tail.x, tail.y)
 	stringPosition := strconv.Itoa(tail.x) + " " + strconv.Itoa(tail.y)
 	tail.previousPosition[stringPosition] = Position{tail.x, tail.y}
 
@@ -126,7 +126,8 @@ func offsetDiaognally(head *KnotPosition, tail *KnotPosition) {
 		}
 	}
 
-	fmt.Println("T> ", tail.x, tail.y)
+	fmt.Println("T>", tail.x, tail.y)
+
 	stringPosition := strconv.Itoa(tail.x) + " " + strconv.Itoa(tail.y)
 	tail.previousPosition[stringPosition] = Position{tail.x, tail.y}
 }
@@ -172,9 +173,44 @@ func processRawData(rawFileData []string) {
 
 }
 
+//Function to visualize the results to compare with the output in the puzzle
+func visualizeGrid(tailPosition KnotPosition) {
+
+	numRows := 5
+	numColumns := 6
+
+	// Initialize a ten length slice of empty slices
+	grid := make([][]string, numRows)
+
+	// Initialize those 10 empty slices
+	for i := 0; i < numRows; i++ {
+		grid[i] = make([]string, numColumns)
+	}
+
+	for _, position := range tailPosition.previousPosition {
+		grid[position.y][position.x] = "#" // rows represent y and columns represent x
+
+	}
+
+	// grid is a 2d slice of strings
+	for i := len(grid) - 1; i >= 0; i-- {
+		for j := 0; j < len(grid[i]); j++ {
+			if grid[i][j] == "#" {
+				fmt.Print(grid[i][j])
+			} else {
+				grid[i][j] = "."
+				fmt.Print(grid[i][j])
+			}
+		}
+		fmt.Println("")
+
+	}
+
+}
+
 func main() {
 
-	rawFileContent := readDataFromFile("./input/data.txt")
+	rawFileContent := readDataFromFile("./input/data_test.txt")
 	processRawData(rawFileContent)
 
 	startPosition := make(map[string]Position)
@@ -202,8 +238,10 @@ func main() {
 	}
 
 	fmt.Println("---------")
+	fmt.Println("Numbert of unique posittions as tail end of rope moved is: ", len(tailPosition.previousPosition))
+	fmt.Println("---------")
 
-	fmt.Println(len(tailPosition.previousPosition))
+	visualizeGrid(tailPosition)
 
 	//initializeGrid()
 

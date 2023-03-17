@@ -6,7 +6,7 @@
 
 
 
-## Thought process
+## Part 1 - Thought process
 
 To map the movement of head and tail on a 2d pattern, a direct/indirect model for a 2x2 grid pattern is required.
 
@@ -46,3 +46,8 @@ If the tail and head are aligned vertically or horizontally:
 To align diagonally:
     Check if the tail will align with head if moved one step diagonally, if not move one step diagonally
 
+
+
+----
+
+## Part 2 - Thought process
