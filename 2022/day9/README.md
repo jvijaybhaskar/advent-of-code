@@ -51,3 +51,19 @@ To align diagonally:
 ----
 
 ## Part 2 - Thought process
+
+There are 9 knots to track now on a two dimentional space. 
+Each move by the head has a repurcusion on the knots that are following. 
+
+So do we individually compute position of all knots as the head traverses the 2d space. 
+
+One approach is as follows:
+
+For every step the `Head` makes to complete its `large` move
+    Loop through an array of `knots` 
+        Determine the relative position of a knot with it predessor
+        If a move is required
+            Move the current knot diagonally OR vertically OR horizontally
+                Record the past positions of the current know for mapping
+
+        

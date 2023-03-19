@@ -15,8 +15,9 @@ type KnotPosition struct {
 }
 
 type Position struct {
-	x int
-	y int
+	x       int
+	y       int
+	knotNum string
 }
 
 type Movement struct {
@@ -25,6 +26,8 @@ type Movement struct {
 }
 
 var headMovements []Movement
+
+var knots []*KnotPosition
 
 func makeMove(move Movement, head *KnotPosition, tail *KnotPosition) {
 
@@ -41,39 +44,61 @@ func makeMove(move Movement, head *KnotPosition, tail *KnotPosition) {
 
 }
 
-func makeSmallMove(move Movement, head *KnotPosition, tail *KnotPosition) {
+func makeSmallMove(move Movement, knots []*KnotPosition) {
 
 	for i := move.steps; i > 0; i-- {
 
-		//fmt.Println(head.x, head.y)
+		//fmt.Println(knots[0].x, knots[0].y)
 
 		switch move.direction {
 		case "U":
-			head.y++
+			knots[0].y++
 		case "D":
-			head.y--
+			knots[0].y--
 		case "L":
-			head.x--
+			knots[0].x--
 		case "R":
-			head.x++
+			knots[0].x++
 		}
 
-		fmt.Println("H>", head.x, head.y)
+		//fmt.Println("H>", knots[0].x, knots[0].y)
 
-		// tests if the tail is on the sample plane as head or not
-		if head.x == tail.x || head.y == tail.y {
-			offsetLaterally(head, tail)
-		} else {
-			//Tests if the tail will align with head if moved one step diagonally, if not move one step diagonally
-			if head.x != tail.x+1 && head.x != tail.x-1 || head.y != tail.y-1 && head.y != tail.y+1 {
-				offsetDiaognally(head, tail)
-			}
+		for i := 0; i < len(knots)-1; i++ {
+			determineOffsettype(knots[i], knots[i+1], i+1)
 		}
 
 	}
 }
 
-func offsetLaterally(head *KnotPosition, tail *KnotPosition) {
+func determineOffsettype(head *KnotPosition, tail *KnotPosition, knotNum int) {
+	// tests if the tail is on the sample plane as head or not
+
+	var stringPosition string
+	if head.x == tail.x || head.y == tail.y {
+		x, y := offsetLaterally(head, tail, knotNum)
+		stringPosition = strconv.Itoa(x) + " " + strconv.Itoa(y)
+	} else {
+		//Tests if the tail will align with head if moved one step diagonally, if not move one step diagonally
+		if head.x != tail.x+1 && head.x != tail.x-1 || head.y != tail.y-1 && head.y != tail.y+1 {
+			x, y := offsetDiaognally(head, tail, knotNum)
+			stringPosition = strconv.Itoa(x) + " " + strconv.Itoa(y)
+
+		} else {
+			stringPosition = ""
+		}
+	}
+
+	if stringPosition != "" {
+
+		tail.previousPosition[stringPosition] = Position{tail.x, tail.y, strconv.Itoa(knotNum)}
+
+	}
+
+}
+
+func offsetLaterally(head *KnotPosition, tail *KnotPosition, knotNum int) (int, int) {
+
+	//fmt.Println("Moving laterally")
 
 	// same vertical line
 	if tail.y == head.y {
@@ -97,13 +122,15 @@ func offsetLaterally(head *KnotPosition, tail *KnotPosition) {
 		}
 	}
 
-	fmt.Println("T>", tail.x, tail.y)
-	stringPosition := strconv.Itoa(tail.x) + " " + strconv.Itoa(tail.y)
-	tail.previousPosition[stringPosition] = Position{tail.x, tail.y}
+	//fmt.Println("T>", tail.x, tail.y)
+	return tail.x, tail.y
 
 }
 
-func offsetDiaognally(head *KnotPosition, tail *KnotPosition) {
+func offsetDiaognally(head *KnotPosition, tail *KnotPosition, knotNum int) (int, int) {
+
+	//fmt.Println("Moving Diagonally")
+
 	if tail.x > head.x {
 		if tail.y > head.y {
 			//3rd quad
@@ -126,10 +153,10 @@ func offsetDiaognally(head *KnotPosition, tail *KnotPosition) {
 		}
 	}
 
-	fmt.Println("T>", tail.x, tail.y)
+	//fmt.Println("T>", tail.x, tail.y)
 
-	stringPosition := strconv.Itoa(tail.x) + " " + strconv.Itoa(tail.y)
-	tail.previousPosition[stringPosition] = Position{tail.x, tail.y}
+	return tail.x, tail.y
+
 }
 
 // Read data from data file
@@ -177,8 +204,8 @@ func processRawData(rawFileData []string) {
 //CAUTION: works for test data only
 func visualizeGrid(tailPosition KnotPosition) {
 
-	numRows := 10
-	numColumns := 10
+	numRows := 25
+	numColumns := 30
 
 	// Initialize a ten length slice of empty slices
 	grid := make([][]string, numRows)
@@ -189,14 +216,15 @@ func visualizeGrid(tailPosition KnotPosition) {
 	}
 
 	for _, position := range tailPosition.previousPosition {
-		grid[position.y][position.x] = "#" // rows represent y and columns represent x
+		fmt.Println(position.x, position.y)
+		grid[position.y+6][position.x+12] = position.knotNum // rows represent y and columns represent x
 
 	}
 
 	// grid is a 2d slice of strings
 	for i := len(grid) - 1; i >= 0; i-- {
 		for j := 0; j < len(grid[i]); j++ {
-			if grid[i][j] == "#" {
+			if grid[i][j] != "" {
 				fmt.Print(grid[i][j])
 			} else {
 				grid[i][j] = "."
@@ -211,39 +239,36 @@ func visualizeGrid(tailPosition KnotPosition) {
 
 func main() {
 
-	rawFileContent := readDataFromFile("./input/data_test.txt")
+	rawFileContent := readDataFromFile("./input/data.txt")
 	processRawData(rawFileContent)
 
-	startPosition := make(map[string]Position)
+	//startPosition := make(map[string]Position)
+	//startPosition["0 0"] = Position{0, 0, "S"}
 
-	startPosition["0 0"] = Position{0, 0}
+	//initilizing 9 knots
+	for i := 0; i < 10; i++ {
+		startPosition := make(map[string]Position)
+		startPosition["0 0"] = Position{0, 0, "S"}
 
-	//Initialize head position
-	var headPosition = KnotPosition{
-		x:                0,
-		y:                0,
-		previousPosition: startPosition,
-	}
+		var knot = KnotPosition{
+			x:                0,
+			y:                0,
+			previousPosition: startPosition,
+		}
 
-	//Initialize tail position
-	var tailPosition = KnotPosition{
-		x:                0,
-		y:                0,
-		previousPosition: startPosition,
+		knots = append(knots, &knot)
 	}
 
 	for _, move := range headMovements {
-		//fmt.Println("Before move: ", headPosition.x, headPosition.y)
-		makeSmallMove(move, &headPosition, &tailPosition) // move head as per instruction
-		//fmt.Println("After move: ", headPosition.x, headPosition.y)
+		//fmt.Println("Before move: ", knots[0].x, knots[0].y)
+		makeSmallMove(move, knots) // move head as per instruction and adjust the rest of knots
+		//fmt.Println("After move: ", knots[0].x, knots[0].y)
 	}
 
 	fmt.Println("---------")
-	fmt.Println("Number of unique posittions as tail end of rope moved is: ", len(tailPosition.previousPosition))
+	fmt.Println("Number of unique posittions as tail end of rope moved is: ", len(knots[len(knots)-1].previousPosition))
 	fmt.Println("---------")
 
-	visualizeGrid(tailPosition)
-
-	//initializeGrid()
+	//visualizeGrid(*knots[len(knots)-1])
 
 }
