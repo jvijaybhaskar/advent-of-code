@@ -41,3 +41,31 @@ The goal is to review the value of a register `x` throughout execution. It is qu
 
 
 
+---
+## Part 2 - Thought Process
+
+The CRT screen is a 40x6 grid. The left most positions of a row is indexed by 1 and right most by 40.
+
+Weather to display a particular pixel with `#` or `.` is determined by the overlaying sprite position `###` and the current cycle count. 
+
+
+```
+Cycle   1 -> ######################################## <- Cycle  40
+Cycle  41 -> ######################################## <- Cycle  80
+Cycle  81 -> ######################################## <- Cycle 120
+Cycle 121 -> ######################################## <- Cycle 160
+Cycle 161 -> ######################################## <- Cycle 200
+Cycle 201 -> ######################################## <- Cycle 240
+```
+
+### Logic
+
+- Loop through the value of a register (represents the sprite position) computed in the previous part during each CPU cycle.
+    - If there is a an overlap of `sprite position` and `cycle count`
+        - `#` is displayed on CRT
+    - else 
+        - `.` is displayed
+
+    - Offset and print on next line in case the `cycle count` overflow the CRT pixel capacity in a row (40 in this case)
+
+

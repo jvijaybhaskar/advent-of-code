@@ -43,24 +43,24 @@ func processInstructions() {
 
 	//Initializing to starting cycle from 1
 	cycle = append(cycle, registerX) //Represents 0 - Dummy
+	//fmt.Println(registerX, "=", "Dummy", "|", "0")
 	cycle = append(cycle, registerX) // Represents 1st cycle
+	//fmt.Println(registerX, "=", "Init", "|", "1")
 
-	//cycleTracker := 1
+	cycleTracker := 1
 
 	for _, instruction := range instructions {
-
-		//fmt.Println("instruction:", instruction)
 
 		if strings.Index(instruction, "noop") >= 0 {
 			//simulating a clock cycle
 			cycle = append(cycle, registerX)
 
-			//cycleTracker++
+			cycleTracker++
 			//fmt.Println(registerX, " ", instruction, "|", cycleTracker)
 		} else {
 			//simulating two cycle to complete
 			cycle = append(cycle, registerX)
-			//cycleTracker++
+			cycleTracker++
 			//fmt.Println(registerX, " ", instruction, "|", cycleTracker)
 
 			/*
@@ -77,7 +77,7 @@ func processInstructions() {
 			//simulating a the second clock cycle
 			cycle = append(cycle, registerX)
 
-			//cycleTracker++
+			cycleTracker++
 			//fmt.Println(registerX, "=", instruction, "|", cycleTracker)
 		}
 	}
@@ -108,15 +108,45 @@ func computeSignalStrength() int {
 
 }
 
+func displayOnCRT() {
+
+	crtColLength := 40
+	rowOffset := 1
+	var crtRow string
+
+	for i, cycleValue := range cycle {
+
+		if i == 0 {
+			continue
+		}
+
+		if rowOffset == cycleValue || rowOffset == cycleValue+1 || rowOffset == cycleValue+2 {
+			crtRow += "#"
+		} else {
+			crtRow += "."
+		}
+
+		if rowOffset == crtColLength {
+			rowOffset = 1
+			fmt.Println(crtRow, "|", i)
+			crtRow = ""
+		} else {
+			rowOffset++
+		}
+
+	}
+
+}
+
 func main() {
 
 	instructions = readDataFromFile("./input/data.txt")
 	processInstructions()
 
-	/*
-		for i, cycleValue := range cycle {
-			fmt.Println(i, cycleValue)
-		}
-	*/
+	fmt.Println("")
 	fmt.Println("Sum of signal strengths for PART 1 = ", computeSignalStrength())
+	fmt.Println("")
+
+	displayOnCRT()
+
 }
