@@ -15,9 +15,10 @@ type Monkey struct {
 	operation        string
 	divisibilityTest int
 	action           []int
+	inspectedItems   int
 }
 
-var monkeyList = make(map[int]*Monkey)
+var monkeyList []*Monkey
 
 // Read data from data file
 func readDataFromFile(filepath string) []string {
@@ -92,11 +93,10 @@ func processRawData(rawData []string) {
 		currentMonkey.action = append(currentMonkey.action, iFalseAction)
 
 		fmt.Println(currentMonkey)
-		monkeyList[currentMonkeyId] = &currentMonkey
+		monkeyList = append(monkeyList, &currentMonkey)
 
 	}
 }
-
 
 func multiply(a int, b int) int {
 	return a * b
@@ -106,15 +106,24 @@ func add(a int, b int) int {
 	return a + b
 }
 
-func keepAway(monkey *Monkey) {
+func keepAway(monkey *Monkey, items []int) {
+
+	var worryFactor int
 
 	//identify operation
 	operation := strings.Split(monkey.operation, " ")
-	worryFactor, _ := strconv.Atoi(operation[2])
 
-	for _, worryLevel := range monkey.startingItems {
+	for _, worryLevel := range items {
+
+		//fmt.Println("Monkey and Worry level:::: ", monkey.monkeyId, worryLevel)
 
 		var currentWorryLevel, reducedWorryLevel int
+
+		if operation[2] == "old" {
+			worryFactor = worryLevel
+		} else {
+			worryFactor, _ = strconv.Atoi(operation[2])
+		}
 
 		switch operation[1] {
 		case "*":
@@ -128,27 +137,69 @@ func keepAway(monkey *Monkey) {
 
 		if reducedWorryLevel%monkey.divisibilityTest == 0 {
 			receivingMonkey := monkeyList[monkey.action[0]]
-			receivingMonkey.holdingItems = append(receivingMonkey.holdingItems, currentWorryLevel)
+			receivingMonkey.holdingItems = append(receivingMonkey.holdingItems, reducedWorryLevel)
 
 		} else {
 			receivingMonkey := monkeyList[monkey.action[1]]
-			receivingMonkey.holdingItems = append(receivingMonkey.holdingItems, currentWorryLevel)
+			receivingMonkey.holdingItems = append(receivingMonkey.holdingItems, reducedWorryLevel)
 		}
 
 	}
 
 }
 
+func runRounds() {
 
+	for i := 0; i < 20; i++ {
 
+		//Move items as per instructions in data set
+		for _, monkey := range monkeyList {
+
+			var items []int
+
+			items = monkey.startingItems
+			items = append(items, monkey.holdingItems...)
+
+			/*
+				if len(items) == 0 {
+					continue
+				}
+			*/
+
+			monkey.inspectedItems += len(items)
+
+			//empty all holding items as they are going to be thrown
+			monkey.startingItems = make([]int, 0)
+			monkey.holdingItems = make([]int, 0)
+
+			keepAway(monkey, items)
+
+		}
+
+		//Rerunning the loop to find the output after the keep away round
+		fmt.Println("Output after round:", i+1)
+
+		for _, monkey := range monkeyList {
+
+			
+			fmt.Printf("MonkeyID:%v | InspectedItems:%d |  %d\n", monkey.monkeyId, monkey.inspectedItems, monkey.holdingItems)
+
+			//Reassign holding items
+
+			//monkey.startingItems = monkey.holdingItems
+			//monkey.holdingItems = make([]int, 0)
+
+		}
+
+	}
+
+}
 
 func main() {
 
-	rawData := readDataFromFile("./input/data_test.txt")
+	rawData := readDataFromFile("./input/data.txt")
 	processRawData(rawData)
 
-	
-	
-	
+	runRounds()
 
 }
