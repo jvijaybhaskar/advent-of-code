@@ -106,7 +106,58 @@ func add(a int, b int) int {
 	return a + b
 }
 
-func keepAway(monkey *Monkey, items []int) {
+func keepAway(monkey *Monkey, items []int, puzzlePart int) {
+
+	var worryFactor int
+	var reductionFactor int
+
+	if puzzlePart == 1 {
+		reductionFactor = 3
+	} else {
+		reductionFactor = computeReductionFactor()
+	}
+
+	//identify operation
+	operation := strings.Split(monkey.operation, " ")
+
+	for _, worryLevel := range items {
+
+		//fmt.Println("Monkey and Worry level:::: ", monkey.monkeyId, worryLevel)
+
+		var currentWorryLevel, reducedWorryLevel int
+
+		if operation[2] == "old" {
+			worryFactor = worryLevel
+		} else {
+			worryFactor, _ = strconv.Atoi(operation[2])
+		}
+
+		switch operation[1] {
+		case "*":
+			currentWorryLevel = multiply(worryLevel, worryFactor)
+
+		case "+":
+			currentWorryLevel = add(worryLevel, worryFactor)
+		}
+
+		if puzzlePart == 1 {
+			//this is needed for Part 1
+			reducedWorryLevel = currentWorryLevel / reductionFactor
+		} else {
+			reducedWorryLevel = currentWorryLevel % reductionFactor
+
+		}
+
+		//Move the item to the holding list of another monkey
+		passItem(reducedWorryLevel, monkey)
+
+	}
+
+}
+
+func keepAwayPart2_test(monkey *Monkey, items []int) {
+
+	reductionFactor := computeReductionFactor()
 
 	var worryFactor int
 
@@ -133,24 +184,41 @@ func keepAway(monkey *Monkey, items []int) {
 			currentWorryLevel = add(worryLevel, worryFactor)
 		}
 
-		reducedWorryLevel = currentWorryLevel / 3
+		//this is needed for Part 1
+		reducedWorryLevel = currentWorryLevel % reductionFactor
 
-		if reducedWorryLevel%monkey.divisibilityTest == 0 {
-			receivingMonkey := monkeyList[monkey.action[0]]
-			receivingMonkey.holdingItems = append(receivingMonkey.holdingItems, reducedWorryLevel)
-
-		} else {
-			receivingMonkey := monkeyList[monkey.action[1]]
-			receivingMonkey.holdingItems = append(receivingMonkey.holdingItems, reducedWorryLevel)
-		}
+		//Move the item to the holding list of another monkey
+		passItem(reducedWorryLevel, monkey)
 
 	}
 
 }
 
-func runRounds() {
+func passItem(reducedWorryLevel int, monkey *Monkey) {
 
-	for i := 0; i < 20; i++ {
+	if reducedWorryLevel%monkey.divisibilityTest == 0 {
+		receivingMonkey := monkeyList[monkey.action[0]]
+		receivingMonkey.holdingItems = append(receivingMonkey.holdingItems, reducedWorryLevel)
+
+	} else {
+		receivingMonkey := monkeyList[monkey.action[1]]
+		receivingMonkey.holdingItems = append(receivingMonkey.holdingItems, reducedWorryLevel)
+	}
+
+}
+
+func computeReductionFactor() int {
+	reductionFator := 1
+	for _, monkey := range monkeyList {
+		reductionFator *= monkey.divisibilityTest
+	}
+
+	return reductionFator
+}
+
+func runRounds(rounds int, puzzlePart int) {
+
+	for i := 0; i < rounds; i++ {
 
 		//Move items as per instructions in data set
 		for _, monkey := range monkeyList {
@@ -160,19 +228,13 @@ func runRounds() {
 			items = monkey.startingItems
 			items = append(items, monkey.holdingItems...)
 
-			/*
-				if len(items) == 0 {
-					continue
-				}
-			*/
-
 			monkey.inspectedItems += len(items)
 
 			//empty all holding items as they are going to be thrown
 			monkey.startingItems = make([]int, 0)
 			monkey.holdingItems = make([]int, 0)
 
-			keepAway(monkey, items)
+			keepAway(monkey, items, puzzlePart)
 
 		}
 
@@ -181,13 +243,7 @@ func runRounds() {
 
 		for _, monkey := range monkeyList {
 
-			
-			fmt.Printf("MonkeyID:%v | InspectedItems:%d |  %d\n", monkey.monkeyId, monkey.inspectedItems, monkey.holdingItems)
-
-			//Reassign holding items
-
-			//monkey.startingItems = monkey.holdingItems
-			//monkey.holdingItems = make([]int, 0)
+			fmt.Printf("MonkeyID:%v | InspectedItems:%d \n", monkey.monkeyId, monkey.inspectedItems)
 
 		}
 
@@ -197,9 +253,10 @@ func runRounds() {
 
 func main() {
 
-	rawData := readDataFromFile("./input/data.txt")
+	rawData := readDataFromFile("./input/data_test.txt")
 	processRawData(rawData)
 
-	runRounds()
+	puzzlePart := 2
+	runRounds(20, puzzlePart)
 
 }
