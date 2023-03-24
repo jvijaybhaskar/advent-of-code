@@ -155,45 +155,6 @@ func keepAway(monkey *Monkey, items []int, puzzlePart int) {
 
 }
 
-func keepAwayPart2_test(monkey *Monkey, items []int) {
-
-	reductionFactor := computeReductionFactor()
-
-	var worryFactor int
-
-	//identify operation
-	operation := strings.Split(monkey.operation, " ")
-
-	for _, worryLevel := range items {
-
-		//fmt.Println("Monkey and Worry level:::: ", monkey.monkeyId, worryLevel)
-
-		var currentWorryLevel, reducedWorryLevel int
-
-		if operation[2] == "old" {
-			worryFactor = worryLevel
-		} else {
-			worryFactor, _ = strconv.Atoi(operation[2])
-		}
-
-		switch operation[1] {
-		case "*":
-			currentWorryLevel = multiply(worryLevel, worryFactor)
-
-		case "+":
-			currentWorryLevel = add(worryLevel, worryFactor)
-		}
-
-		//this is needed for Part 1
-		reducedWorryLevel = currentWorryLevel % reductionFactor
-
-		//Move the item to the holding list of another monkey
-		passItem(reducedWorryLevel, monkey)
-
-	}
-
-}
-
 func passItem(reducedWorryLevel int, monkey *Monkey) {
 
 	if reducedWorryLevel%monkey.divisibilityTest == 0 {
@@ -256,7 +217,15 @@ func main() {
 	rawData := readDataFromFile("./input/data_test.txt")
 	processRawData(rawData)
 
-	puzzlePart := 2
+	//Code to run part 1
+
+	fmt.Println("-----------------------PART1-------------------------")
+	puzzlePart := 1
 	runRounds(20, puzzlePart)
+
+	fmt.Println("-----------------------PART2-------------------------")
+	//Code to run part 2
+	puzzlePart = 2
+	runRounds(10000, puzzlePart)
 
 }
